@@ -1,4 +1,8 @@
+import './bubble.dart';
 import 'package:flutter/material.dart';
+// import 'package:animated_background/animated_background.dart';
+import './imgAnimation.dart';
+import 'package:flutter/cupertino.dart';
 
 void main() => runApp(MyApp());
 
@@ -7,105 +11,273 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      debugShowCheckedModeBanner: false,
+      title: 'Bubbles',
+      home: HomePage(),
+      routes: {
+        'bubble': (context) => Scaffold(
+              appBar: AppBar(
+                title: Text('bubble'),
+              ),
+              body: Bubbles(),
+            ),
+        'img': (context) => Scaffold(
+              appBar: AppBar(
+                title: Text('imgAnimation'),
+              ),
+              body: Center(
+                child: ScaleAnimationRoute(),
+              ),
+            )
+      },
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class HomePage extends StatelessWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            FlatButton(
+              child: Text('bubble'),
+              onPressed: () {
+                Navigator.pushNamed(context, 'bubble');
+              },
+            ),
+            FlatButton(
+              child: Text('imgAnimation'),
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                        transitionDuration: Duration(microseconds: 500),
+                        pageBuilder: (BuildContext context, Animation animation,
+                            Animation secondaryAnimation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: Scaffold(
+                              appBar: AppBar(
+                                title: Text('imgAnimation'),
+                              ),
+                              body: Center(
+                                child: ScaleAnimationRoute(),
+                              ),
+                            ),
+                          );
+                        }));
+              },
+            ),
+            FlatButton(
+              child: HeroAnimationRoute(),
+              onPressed: () {},
+            ),
+            FlatButton(
+              child: StaggerDemo(),
+              onPressed: () {},
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+// class Bubbles extends StatefulWidget {
+//   Bubbles({Key key}) : super(key: key);
+
+//   @override
+//   _BubblesState createState() => _BubblesState();
+// }
+
+// class _BubblesState extends State<Bubbles> with TickerProviderStateMixin {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('bubble demo'),
+//       ),
+//       body: AnimatedBackground(
+//         behaviour: RandomParticleBehaviour(
+//           options: ParticleOptions(
+//               particleCount: 20,
+//               image: Image.asset('assets/images/avatar.png'),
+//               spawnMaxSpeed: 30,
+//               spawnMinSpeed: 20,
+//               ),
+//           paint: particlePaint,
+//         ),
+//         vsync: this,
+//         child: ScaleAnimationRoute(),
+//       ),
+//     );
+//   }
+// }
+
+// var particlePaint = Paint()
+//   ..style = PaintingStyle.stroke
+//   ..strokeWidth = 1.0;
+
+// HERO动画
+class HeroAnimationRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.topCenter,
+      child: InkWell(
+        child: Hero(
+          tag: "avatar", // 唯一标记，前后两个路由页面的tag必需相同
+          child: ClipOval(
+            child: Image.asset(
+              "assets/images/avatar.png",
+              width: 50.0,
+            ),
+          ),
+        ),
+        onTap: () {
+          Navigator.push(context, PageRouteBuilder(pageBuilder:
+              (BuildContext context, Animation animation,
+                  Animation scondaryAnimation) {
+            return FadeTransition(
+              opacity: animation,
+              child: Scaffold(
+                appBar: AppBar(
+                  title: Text("原图"),
+                ),
+                body: HeroAnimationRouteB(),
+              ),
+            );
+          }));
+        },
+      ),
+    );
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class HeroAnimationRouteB extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Hero(
+        tag: "avatar", //唯一标记，前后两个路由页Hero的tag必须相同
+        child: Image.asset("assets/images/avatar.png"),
+      ),
+    );
+  }
+}
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+// 交错动画，柱状图增长动画
+// 动画需求
+//1.开始时高度从0增长到300像素，同时颜色由绿色渐变为红色；这个过程占据整个动画时间的60%。
+//2.高度增长到300后，开始沿X轴向右平移100像素；这个过程占用整个动画时间的40%。
+
+class StaggerAnimation extends StatelessWidget {
+  StaggerAnimation({Key key, this.controller}) : super(key: key) {
+    //高度动画
+    height = Tween<double>(
+      begin: .0,
+      end: 200.0,
+    ).animate(CurvedAnimation(
+        parent: controller,
+        curve: Interval(0.0, 0.6, // 间隔， 前60%的动画时间
+            curve: Curves.ease)));
+
+    // 颜色动画
+    color = ColorTween(
+      begin: Colors.green,
+      end: Colors.red,
+    ).animate(CurvedAnimation(
+        parent: controller, curve: Interval(0.0, 0.6, curve: Curves.ease)));
+
+    // x轴平移变化
+    padding = Tween<EdgeInsets>(
+      begin: EdgeInsets.only(left: 0),
+      end: EdgeInsets.only(left: 100.0),
+    ).animate(CurvedAnimation(
+        parent: controller, curve: Interval(0.6, 1.0, curve: Curves.ease)));
+  }
+
+
+  final Animation<double> controller;
+  Animation<double> height;
+  Animation<EdgeInsets> padding;
+  Animation<Color> color;
+
+  Widget _buildAnimation(BuildContext context, Widget child) {
+    return Container(
+      alignment: Alignment.bottomCenter,
+      padding: padding.value,
+      child: Container(
+        color: color.value,
+        width: 50.0,
+        height: height.value,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+    return AnimatedBuilder(
+      builder: _buildAnimation,
+      animation: controller,
+    );
+  }
+}
+
+// 启动动画路由
+
+class StaggerDemo extends StatefulWidget {
+  @override
+  _StaggerDemoState createState() => _StaggerDemoState();
+}
+
+class _StaggerDemoState extends State<StaggerDemo>
+    with TickerProviderStateMixin {
+  AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+  }
+
+  Future<Null> _playAnimation() async {
+    try {
+      await _controller.forward().orCancel;
+
+      await _controller.reverse().orCancel;
+    } on TickerCanceled {
+      // 动画取消
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        _playAnimation();
+      },
+      child: Center(
+        child: Container(
+          width: 200.0,
+          height: 220.0,
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.1),
+            border: Border.all(
+              color: Colors.black.withOpacity(0.5),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
+          ),
+          child: StaggerAnimation(
+            controller: _controller,
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
