@@ -14,10 +14,14 @@ class Avatar extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: ClipOval(
-        child: Image.asset(
+        child: Image.network(
           url,
           width: 50.0,
         ),
+        // Image.asset(
+        //   url,
+        //   width: 50.0,
+        // ),
       ),
     );
   }
@@ -101,11 +105,10 @@ class BubbleAnimation extends StatelessWidget {
 }
 
 class BubbleDemo extends StatefulWidget {
-  BubbleDemo({Key key, this.url, this.active, this.index}) : super(key: key);
+  BubbleDemo({Key key, this.url, this.active}) : super(key: key);
 
   final String url;
-  final bool active;
-  var index;
+  final active;
   @override
   _BubbleDemoState createState() => _BubbleDemoState();
 }
@@ -118,17 +121,21 @@ class _BubbleDemoState extends State<BubbleDemo> with TickerProviderStateMixin {
     super.initState();
     _controller =
         AnimationController(duration: const Duration(seconds: 3), vsync: this);
-    if (widget.active) {
-      _controller.forward();
-    }
+
     // if (_controller.isCompleted) {
     //   widget.index['n'] += 1;
     // }
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        widget.index['n'] += 1;
+        print('动画结束$status');
+        widget.active();
+        _controller.reset();
+      } else if (status == AnimationStatus.dismissed) {
+        _controller.forward();
       }
     });
+
+    _controller.forward();
   }
   // Future<Null> _playAnimation() async {
   //   try {
@@ -155,20 +162,68 @@ class _BubbleDemoState extends State<BubbleDemo> with TickerProviderStateMixin {
   }
 }
 
-List<BubbleDemo> generateBubble() {
-  var num = {'n': 0};
-  final List<String> imgList = [
-    "assets/images/cat.jpg",
-    "assets/images/avatar.png",
-    "assets/images/dog.jpg",
-    "assets/images/girl.jpg",
-    "assets/images/panda.jpg",
-  ];
-  List<BubbleDemo> bubbleList = [];
-
-  for (var i = 0; i < imgList.length; i++) {
-    bubbleList
-        .add(BubbleDemo(url: imgList[i], active: i == num['n'], index: num));
-  }
-  return bubbleList;
+class BubbleList extends StatefulWidget {
+  @override
+  _BubbleListState createState() => _BubbleListState();
 }
+
+class _BubbleListState extends State<BubbleList> {
+  int _index = 0;
+  // final List<String> imgList = [
+  //   "assets/images/cat.jpg",
+  //   "assets/images/avatar.png",
+  //   "assets/images/dog.jpg",
+  //   "assets/images/girl.jpg",
+  //   "assets/images/panda.jpg",
+  // ];
+  final List<String> imgList = [
+    "http://img5.duitang.com/uploads/item/201410/02/20141002212239_zWR55.jpeg",
+    "http://b-ssl.duitang.com/uploads/item/201812/05/20181205211932_xvslr.jpeg",
+    "http://img4.duitang.com/uploads/item/201412/20/20141220202258_a82Jw.thumb.700_0.jpeg",
+    "http://b-ssl.duitang.com/uploads/item/201812/05/20181205110157_KXzP5.jpeg",
+    "http://img.qqzhi.com/uploads/2018-12-23/085251409.jpg",
+  ];
+
+  void _callBack() {
+    print('执行了一次');
+    setState(() {
+      if (_index >= imgList.length - 1) {
+        _index = 0;
+      } else {
+        _index += 1;
+      }
+    });
+    print('index$_index');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(children: <Widget>[
+      BubbleDemo(url: imgList[_index], active: _callBack)
+    ]);
+  }
+}
+
+// List<BubbleDemo> generateBubble() {
+//   var num = {'n': 0};
+//   final List<String> imgList = [
+//     "assets/images/cat.jpg",
+//     "assets/images/avatar.png",
+//     "assets/images/dog.jpg",
+//     "assets/images/girl.jpg",
+//     "assets/images/panda.jpg",
+//   ];
+
+//   void callback() {
+//     num['n'] += 1;
+//   }
+
+//   print(num['n']);
+//   List<BubbleDemo> bubbleList = [];
+
+//   for (var i = 0; i < imgList.length; i++) {
+//     bubbleList
+//         .add(BubbleDemo(url: imgList[i], active: callback, index: num, i: i));
+//   }
+//   return bubbleList;
+// }
