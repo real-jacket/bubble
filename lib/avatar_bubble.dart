@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
+// import 'dart:math';
 
 class Avatar extends StatelessWidget {
+  Avatar({Key key, this.url}) : super(key: key);
+
+  final url;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -11,7 +15,7 @@ class Avatar extends StatelessWidget {
       ),
       child: ClipOval(
         child: Image.asset(
-          "assets/images/avatar.png",
+          url,
           width: 50.0,
         ),
       ),
@@ -20,28 +24,37 @@ class Avatar extends StatelessWidget {
 }
 
 class BubbleAnimation extends StatelessWidget {
-  BubbleAnimation({Key key, this.controller,this.height,this.width}) : super(key: key) {
+  BubbleAnimation(
+      {Key key,
+      this.controller,
+      this.height,
+      this.width,
+      this.url,
+      this.active})
+      : super(key: key) {
     // 大小变化
     scale = Tween<double>(begin: .0, end: 1.0).animate(CurvedAnimation(
         parent: controller, curve: Interval(.0, 0.1, curve: Curves.linear)));
 
-    final double randomX = Random().nextDouble() * height;
-    final double randomY = Random().nextDouble() * width;
-    this.direction = Random().nextDouble() * 360;
-    this.speed = 1;
+    // final double randomX = Random().nextDouble() * width;
+    // final double randomY = Random().nextDouble() * height;
+    // print('height$height');
+    // print('width$width');
+    // print(randomX);
+    // print(randomY);
 
     // 水平位移
     positionX = Tween<double>(
-      begin: randomX,
-      end: randomX + 100.0,
+      begin: 100,
+      end: 150,
     ).animate(CurvedAnimation(
         parent: controller,
         curve: Interval(0.1, 1, curve: Curves.bounceInOut)));
 
     //垂直位移
     positionY = Tween<double>(
-      begin: randomY,
-      end: randomY + 200.0,
+      begin: 400,
+      end: 600,
     ).animate(CurvedAnimation(
         parent: controller, curve: Interval(0.1, 1, curve: Curves.linear)));
     // fade消失
@@ -55,9 +68,8 @@ class BubbleAnimation extends StatelessWidget {
   Animation<double> opacity;
   double height;
   double width;
-  double direction;
-  double speed;
-  
+  String url;
+  bool active;
 
   Widget _buildAnimation(BuildContext context, Widget child) {
     return Stack(
@@ -70,7 +82,9 @@ class BubbleAnimation extends StatelessWidget {
               child: ScaleTransition(
                 alignment: Alignment.center,
                 scale: scale,
-                child: Avatar(),
+                child: Avatar(
+                  url: url,
+                ),
               ),
             )),
       ],
@@ -86,9 +100,12 @@ class BubbleAnimation extends StatelessWidget {
   }
 }
 
-
-
 class BubbleDemo extends StatefulWidget {
+  BubbleDemo({Key key, this.url, this.active, this.index}) : super(key: key);
+
+  final String url;
+  final bool active;
+  var index;
   @override
   _BubbleDemoState createState() => _BubbleDemoState();
 }
@@ -101,8 +118,18 @@ class _BubbleDemoState extends State<BubbleDemo> with TickerProviderStateMixin {
     super.initState();
     _controller =
         AnimationController(duration: const Duration(seconds: 3), vsync: this);
+    if (widget.active) {
+      _controller.forward();
+    }
+    // if (_controller.isCompleted) {
+    //   widget.index['n'] += 1;
+    // }
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        widget.index['n'] += 1;
+      }
+    });
   }
-
   // Future<Null> _playAnimation() async {
   //   try {
   //     await _controller.forward().orCancel;
@@ -115,40 +142,33 @@ class _BubbleDemoState extends State<BubbleDemo> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          _controller.forward();
-        },
-        child: Stack(
-          children: <Widget>[
-            BubbleAnimation(
-              controller: _controller,
-              height: MediaQuery.of(context).size.height,
-              width: MediaQuery.of(context).size.width,
-            ),
-            BubbleAnimation(
-              controller: _controller,
-              height: MediaQuery.of(context).size.height,
-              width: MediaQuery.of(context).size.width,
-            ),
-            BubbleAnimation(
-              controller: _controller,
-              height: MediaQuery.of(context).size.height,
-              width: MediaQuery.of(context).size.width,
-            ),
-            BubbleAnimation(
-              controller: _controller,
-              height: MediaQuery.of(context).size.height,
-              width: MediaQuery.of(context).size.width,
-            ),
-          ],
-        ));
+    return BubbleAnimation(
+      url: widget.url,
+      controller: _controller,
+    );
   }
 
-  // @override
-  // void dispose() {
-  //   _controller.dispose();
-  //   super.dispose();
-  // }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
+
+List<BubbleDemo> generateBubble() {
+  var num = {'n': 0};
+  final List<String> imgList = [
+    "assets/images/cat.jpg",
+    "assets/images/avatar.png",
+    "assets/images/dog.jpg",
+    "assets/images/girl.jpg",
+    "assets/images/panda.jpg",
+  ];
+  List<BubbleDemo> bubbleList = [];
+
+  for (var i = 0; i < imgList.length; i++) {
+    bubbleList
+        .add(BubbleDemo(url: imgList[i], active: i == num['n'], index: num));
+  }
+  return bubbleList;
 }
