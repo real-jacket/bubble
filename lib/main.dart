@@ -34,21 +34,18 @@ class MyApp extends StatelessWidget {
               ),
             ),
         'animation': (context) => Scaffold(
-          appBar: AppBar(
-            title: Text('Animation　Demo'),
-          ),
-          body: Center(
-            child: LogoApp(),
-          ),
-        ),
+              appBar: AppBar(
+                title: Text('Animation　Demo'),
+              ),
+              body: Center(
+                child: LogoApp(),
+              ),
+            ),
         'avatar': (context) => Scaffold(
-          appBar: AppBar(
-            title: Text('avatar bubble'),
-          ),
-          body: Center(
-            child: BubbleDemo(),
-          ),
-        )
+            appBar: AppBar(
+              title: Text('avatar bubble'),
+            ),
+            body: Center(child: BubbleList()))
       },
     );
   }
@@ -105,7 +102,7 @@ class HomePage extends StatelessWidget {
               child: StaggerDemo(),
               onPressed: () {},
             ),
-           FlatButton(
+            FlatButton(
               child: Text('avatar'),
               onPressed: () {
                 Navigator.pushNamed(context, 'avatar');
@@ -151,4 +148,3 @@ class HomePage extends StatelessWidget {
 // var particlePaint = Paint()
 //   ..style = PaintingStyle.stroke
 //   ..strokeWidth = 1.0;
-
